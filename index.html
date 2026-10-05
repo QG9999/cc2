@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Cookie Clickers 2</title>
+<style>
+body{font-family:Arial,sans-serif;background:linear-gradient(135deg,#d97706,#92400e,#451a03);color:#fff;margin:0;display:flex;height:100vh;overflow:hidden}
+.l{flex:1;background:rgba(59,29,12,.85);backdrop-filter:blur(5px);padding:20px;display:flex;flex-direction:column;align-items:center;justify-content:center;position:relative;overflow:hidden}
+.r{position:fixed;top:0;right:-100%;width:85%;max-width:400px;height:100vh;z-index:2000;display:flex;flex-direction:column;background:rgba(43,20,8,.95);box-shadow:-10px 0 25px rgba(0,0,0,.8);transition:right .3s ease}
+.r.open{right:0}
+.t{display:flex;background:#291104;border-bottom:2px solid #78350f}
+.tb{flex:1;padding:10px;background:none;border:none;color:#fde047;font-weight:700;cursor:pointer;font-size:12px}
+.tb.active{color:#fff;background:#59260b;border-bottom:3px solid #f59e0b}
+.p{flex:1;padding:15px;overflow-y:auto;display:none}
+.p.active{display:block}
+#cb{width:180px;height:180px;border-radius:50%;background:#8b5a2b;border:8px solid #5c3a21;cursor:pointer;box-shadow:0 10px 25px rgba(0,0,0,.8);position:relative;transition:transform .1s;outline:none;z-index:2}
+#cb:active{transform:scale(.93)}
+.chip{position:absolute;background:#3b220c;border-radius:50%}
+.it{display:flex;justify-content:space-between;align-items:center;background:rgba(74,38,16,.9);padding:8px 12px;margin-bottom:6px;border-radius:6px;border-left:4px solid #f59e0b}
+.it.upg{border-left-color:#3b82f6}
+.act{background:#d97706;color:#fff;border:none;padding:6px 12px;border-radius:4px;cursor:pointer;font-weight:700}
+.act:disabled{background:#555;cursor:not-allowed}
+.box{background:rgba(92,60,18,.9);border:2px solid #fde047;border-radius:8px;padding:10px;margin-bottom:12px;text-align:center}
+.box.milk{background:rgba(15,23,42,.9);border-color:#38bdf8}
+.pb-bg{background:#111;border-radius:6px;height:14px;width:100%;border:1px solid #78350f;overflow:hidden;margin-top:4px}
+.pb-fill{background:linear-gradient(90deg,#f59e0b,#fde047);height:100%;width:0%}
+.fc{position:absolute;width:40px;height:40px;background:radial-gradient(circle,#fde047 30%,#ca8a04 90%);border-radius:50%;cursor:pointer;z-index:1000;animation:fall linear forwards}
+@keyframes fall{0%{transform:translateY(-50px)}100%{transform:translateY(calc(100vh - 80px))}}
+.bgp{position:absolute;background:rgba(253,224,71,.25);border-radius:50%;pointer-events:none;z-index:1;animation:floatUp linear infinite}
+@keyframes floatUp{0%{transform:translateY(100vh) scale(.5);opacity:0}50%{opacity:.8}100%{transform:translateY(-50px) scale(1.2);opacity:0}}
+#shopToggle{position:absolute;top:15px;right:15px;z-index:1001;background:#d97706;color:#fff;border:2px solid #fde047;padding:10px 16px;border-radius:8px;font-weight:700;cursor:pointer;box-shadow:0 4px 10px rgba(0,0,0,.5)}
+.close-mob{width:100%;background:#ef4444;margin-bottom:10px;padding:10px}
+</style>
+</head>
+<body>
+<div class="bgp" style="width:20px;height:20px;left:10%;animation-duration:12s"></div>
+<div class="bgp" style="width:35px;height:35px;left:30%;animation-duration:18s;animation-delay:2s"></div>
+<div class="bgp" style="width:15px;height:15px;left:60%;animation-duration:10s;animation-delay:1s"></div>
+<div class="bgp" style="width:25px;height:25px;left:80%;animation-duration:15s;animation-delay:4s"></div>
+<button id="shopToggle" onclick="toggleShop()">🛒 Open Shop</button>
+<div class="l" id="lp">
+    <div style="text-align:center;margin-bottom:15px;z-index:2">
+        <div id="cc" style="font-size:26px;font-weight:900">0 Cookies</div>
+        <div id="cp" style="font-size:14px;color:#fef08a">0 CpS</div>
+    </div>
+    <button id="cb">
+        <div class="chip" style="width:24px;height:24px;top:35px;left:40px"></div>
+        <div class="chip" style="width:18px;height:18px;top:90px;left:30px"></div>
+        <div class="chip" style="width:22px;height:22px;top:55px;left:110px"></div>
+        <div class="chip" style="width:16px;height:16px;top:110px;left:105px"></div>
+        <div class="chip" style="width:20px;height:20px;top:80px;left:75px"></div>
+    </button>
+    <div style="text-align:center;font-size:13px;color:#fef08a;margin-top:15px;z-index:2">
+        <div id="gbc" style="color:#fde047">Golden Cookies: 0 🌟</div>
+        <div id="cpc">Click Power: +1</div>
+    </div>
+    <div style="position:absolute;bottom:110px;left:15px;right:15px;display:flex;gap:10px;z-index:2">
+        <div id="ms-bar" class="box milk" style="flex:1;margin:0;padding:6px;display:none">
+            <div style="font-size:11px;color:#bae6fd" id="mst">🥛 Next: Choco Milk 🍫 (300s)</div>
+            <div class="pb-bg" style="border-color:#0369a1;height:8px;margin-top:2px"><div id="mfi" class="pb-fill" style="background:linear-gradient(90deg,#0ea5e9,#7dd3fc);width:0%"></div></div>
+        </div>
+        <div id="rs-bar" class="box" style="flex:1;margin:0;padding:6px;display:none">
+            <div style="font-size:11px;color:#fef08a" id="rst">🌟 Rain: 0 / 1000</div>
+            <div class="pb-bg" style="height:8px;margin-top:2px"><div id="rfi" class="pb-fill"></div></div>
+        </div>
+    </div>
+</div>
+<div class="r" id="shopPanel">
+    <button class="act close-mob" onclick="toggleShop()">Close Shop ✕</button>
+    <div class="t">
+        <button class="tb active" onclick="st(0,this)">Shop</button>
+        <button class="tb" onclick="st(1,this)">PowerUps</button>
+        <button class="tb" onclick="st(2,this)">Lucky Spin</button>
+        <button class="tb" onclick="st(3,this)">⏱ Time Machine</button>
+        <button class="tb" onclick="st(4,this)">Settings</button>
+    </div>
+    <div class="p active"><div id="sl"></div></div>
+    <div class="p"><div id="ul"></div></div>
+    <div class="p">
+        <div style="text-align:center;background:#3b1d0c;border:2px solid #9333ea;border-radius:8px;padding:15px">
+            <h3 style="color:#fde047;margin:0 0 10px 0">🎰 LUCKY SPIN (Cost: 3 🌟)</h3>
+            <div id="sr" style="font-size:24px;font-weight:700;background:#fff;color:#000;padding:10px;border-radius:6px;margin-bottom:10px">🍪 x1</div>
+            <button class="act" id="sbtn" onclick="spin()" style="background:#b45309">SPIN</button>
+        </div>
+    </div>
+    <div class="p">
+        <div style="text-align:center;background:#291104;border:2px solid #3b82f6;border-radius:8px;padding:15px">
+            <h3 style="color:#60a5fa;margin:0 0 10px 0">⏱ TEMPORAL DISPLACEMENT</h3>
+            <div style="font-size:13px;color:#cbd5e1;margin-bottom:15px">Spend Golden Cookies to instantly jump through time and pull massive cookie rewards!</div>
+            <div id="trres" style="font-size:18px;font-weight:700;color:#fde047;margin-bottom:15px">Ready to jump!</div>
+            <button class="act" id="j1min" onclick="timeJump(60,5)" style="background:#2563eb;margin:5px">Jump 1 Min (Cost: 5 🌟)</button><br>
+            <button class="act" id="j1hr" onclick="timeJump(3600,50)" style="background:#1d4ed8;margin:5px">Jump 1 Hour (Cost: 50 🌟)</button><br>
+            <button class="act" id="j1day" onclick="timeJump(86400,200)" style="background:#1e40af;margin:5px">Jump 1 Day (Cost: 200 🌟)</button>
+        </div>
+    </div>
+    <div class="p">
+        <button class="act" onclick="SV.s()" style="background:#10b981;margin-bottom:10px">💾 Save Game</button><br>
+        <button class="act" onclick="wipe()" style="background:#ef4444">🗑 Wipe Save</button>
+    </div>
+</div>
+<script>
+let D=0,GB=0,CP=1,PCL=0,PCC=5000,CM=1,CT=null,GRU=false,GFR=1000,CGR=0,GRRC=3,MET=300,MASR=0,AMN='',AMM=1,TT=0,NMN='';
+const NMS=['AutoClick','Grandma','Mr. Baker','C-Robot','Cookie Farm','C-Factory','S-Factory','X-Factory','Cookie Cloner','C-Accelerator','Electron Cookie','Atomic-C','Cookie Volcano','Earthquake-C','Cookie Tsunami','Synthetic Cookie','Genetic Cookie','Cookie Cyborg','Alien Robot','Alien Lab','Alien Cookie','Alien C-X','Nano Cookie','Molecular-C','Virus Cookie','Proto Cookie','Synaptic Cookie','Hydrogen Cookie','Uranium Cookie','Plutonium Cookie','Space Factory','C-Colonizator','Cookie Star','Cookie Force','Dark Cookie','Galactic Cookie','Universe Cookie','Cyber Cookie','Cookie Matrix','Cookie God'];
+let Bs=NMS.map((n,i)=>({name:n,cost:i===0?15:i===1?100:i===2?500:i===3?2000:Math.floor(10000*Math.pow(3.3,i-4)),baseCps:i===0?.1:i===1?.3:i===2?.5:i===3?1:i===4?3:i===5?10:i===6?20:i===7?40:i===8?100:i===9?300:i===10?800:i===11?1500:i===12?3000:i===13?5000:i===14?10000:i===15?20000:i===16?30000:i===17?50000:i===18?75000:i===19?100000:i===20?150050:i===21?300000:i===22?500000:i===23?750000:i===24?1000000:i===25?1500500:i===26?3000000:i===27?5000000:i===28?7500000:i===29?10000000:i===30?15000000:i===31?20000000:i===32?30000000:i===33?50000000:i===34?75000000:i===35?100000000:i===36?125000000:i===37?150000000:i===38?300000000:1000000000,owned:0,mult:1}));
+const US=[
+{id:'powerclick',name:'Power Click',get cost(){return PCC;},get desc(){return PCL>=50?'Max':`Level ${PCL}/50`;},B:false,E:()=>{CP+=Math.pow(2,PCL);PCL++;PCC=Math.floor(PCC*2.5);}},
+{id:'goldenpin',name:'Golden Rolling Pin',cost:400000,B:false,desc:'Grandmas x10',E:()=>{Bs[1].mult=10;}},
+{id:'giantpin',name:'Giant Rolling Pin',cost:2500000,B:false,desc:'Grandmas & Baker x100',E:()=>{Bs[1].mult=Bs[2].mult=100;}},
+{id:'pindeluxe',name:'Rolling Pin Deluxe',cost:7500000,B:false,desc:'Grandmas, Baker & Robots x1,000',E:()=>{Bs[1].mult=Bs[2].mult=Bs[3].mult=1000;}},
+{id:'indrobot',name:'Industrial Robot',cost:20000000,B:false,desc:'Cookie Farm, C-Factory, S-Factory, X-Factory x1,000',E:()=>{for(let i=4;i<=7;i++)Bs[i].mult=1000;}},
+{id:'spinacc',name:'Spin Accelerator',cost:75000000,B:false,desc:'Cookie Cloner, C-Accelerator, Electron Cookie, Atomic-C x1,000',E:()=>{for(let i=8;i<=11;i++)Bs[i].mult=1000;}},
+{id:'earthpower',name:'Earth Power',cost:250000000,B:false,desc:'Cookie Volcano, Earthquake-C, Cookie Tsunami x1,000',E:()=>{for(let i=12;i<=14;i++)Bs[i].mult=1000;}},
+{id:'bioeng',name:'Bioengineering',cost:1000000000,B:false,desc:'Synthetic Cookie, Genetic Cookie, Cookie Cyborg x1,000',E:()=>{for(let i=15;i<=17;i++)Bs[i].mult=1000;}},
+{id:'alientech',name:'Alien Technology',cost:5000000000,B:false,desc:'Alien-related powerups x1,000',E:()=>{for(let i=18;i<=21;i++)Bs[i].mult=1000;}},
+{id:'chocomilk',name:'Choco Milk',cost:50000,B:false,desc:'Unlocks Choco Milk events (10-50x)',E:()=>{document.getElementById('ms-bar').style.display='block';if(!NMN)rollNextMilk();}},
+{id:'mintmilk',name:'Mint Milk',cost:150000,B:false,desc:'Unlocks Mint Milk events (20-100x, 20%)',E:()=>{document.getElementById('ms-bar').style.display='block';if(!NMN)rollNextMilk();}},
+{id:'bananamilk',name:'Banana Milk',cost:300000,B:false,desc:'Unlocks Banana Milk events (30-150x, 10%)',E:()=>{document.getElementById('ms-bar').style.display='block';if(!NMN)rollNextMilk();}},
+{id:'blueberrymilk',name:'Blueberry Milk',cost:750000,B:false,desc:'Unlocks Blueberry Milk events (40-200x, 5%)',E:()=>{document.getElementById('ms-bar').style.display='block';if(!NMN)rollNextMilk();}},
+{id:'strawberrymilk',name:'Strawberry Milk',cost:1500000,B:false,desc:'Unlocks Strawberry Milk events (50-250x, 3%)',E:()=>{document.getElementById('ms-bar').style.display='block';if(!NMN)rollNextMilk();}},
+{id:'goldenrain',name:'Golden Rain',cost:100000,B:false,desc:'Golden cookie rain per 1k clicks',E:()=>{GRU=true;document.getElementById('rs-bar').style.display='block';}},
+{id:'supergoldenrain',name:'Super Golden Rain',cost:500000,B:false,desc:'Boost Golden Rain to 5 cookies',E:()=>{GRRC=5;}},
+{id:'ultragoldenrain',name:'Ultra Golden Rain',cost:2500000,B:false,desc:'Boost Golden Rain to 10 cookies',E:()=>{GRRC=10;}},
+{id:'crazygoldenrain',name:'Crazy Golden Rain',cost:10000000,B:false,desc:'Boost Golden Rain to 25 cookies',E:()=>{GRRC=25;}}
+];
+function fmt(n){
+return n>=1e24?(n/1e24).toFixed(1)+' Sept':n>=1e21?(n/1e21).toFixed(1)+' Sext':n>=1e18?(n/1e18).toFixed(1)+' Quint':n>=1e15?(n/1e15).toFixed(1)+' Quad':n>=1e12?(n/1e12).toFixed(1)+' Tril':n>=1e9?(n/1e9).toFixed(1)+'B':n>=1e6?(n/1e6).toFixed(1)+'M':n>=1e3?(n/1e3).toFixed(1)+'k':Math.floor(n);
+}
+function toggleShop(){document.getElementById('shopPanel').classList.toggle('open');}
+function st(i,el){
+document.querySelectorAll('.p').forEach(c=>c.classList.remove('active'));
+document.querySelectorAll('.tb').forEach(b=>b.classList.remove('active'));
+document.querySelectorAll('.p')[i].classList.add('active');
+el.classList.add('active');
+}
+function render(){
+document.getElementById('sl').innerHTML=Bs.map((b,i)=>`<div class="it"><div><b>${b.name}</b><br><span style="font-size:12px;color:#fef08a">Cost: ${fmt(b.cost)} | +${fmt(b.baseCps*b.mult)} CpS</span></div><div><span id="own-${i}" style="margin-right:8px;font-weight:700">${b.owned}</span><button class="act" id="buy-${i}" onclick="buyB(${i})">Buy</button></div></div>`).join('');
+document.getElementById('ul').innerHTML=US.map((u,i)=>`<div class="it upg"><div><b>${u.name}</b><br><span style="font-size:12px;color:#fef08a">${u.desc} (Cost: ${fmt(u.cost)})</span></div><button class="act" id="ubtn-${i}" onclick="buyU(${i})">Buy</button></div>`).join('');
+}
+function buyB(i){let b=Bs[i];if(D>=b.cost){D-=b.cost;b.owned++;b.cost=Math.floor(b.cost*1.15);SV.s();render();ui();}}
+function buyU(i){let u=US[i];if((!u.B||u.id=='powerclick')&&D>=u.cost){D-=u.cost;if(u.id!='powerclick')u.B=true;u.E();SV.s();render();ui();}}
+function dropRain(){
+const lp=document.getElementById('lp');
+for(let i=0;i<GRRC;i++)setTimeout(()=>{
+let gc=document.createElement('div');gc.className='fc';gc.innerText='🍪';
+gc.style.left=(Math.random()*(lp.clientWidth-50))+'px';gc.style.top='-40px';
+gc.onclick=(e)=>{e.stopPropagation();GB++;gc.remove();ui();};
+setTimeout(()=>gc.remove(),4000);lp.appendChild(gc);
+},i*150);
+}
+function getMilks(){
+let av=[];
+if(US[13].B)av.push({name:'Strawberry Milk 🍓',r:200,m:50});
+if(US[12].B)av.push({name:'Blueberry Milk 🫐',r:160,m:40});
+if(US[11].B)av.push({name:'Banana Milk 🍌',r:120,m:30});
+if(US[10].B)av.push({name:'Mint Milk 🌿',r:80,m:20});
+if(US[9].B)av.push({name:'Choco Milk 🍫',r:40,m:10});
+return av;
+}
+function rollNextMilk(){let av=getMilks();if(av.length>0)NMN=av[Math.floor(Math.random()*av.length)].name;}
+function triggerMilk(){
+let av=getMilks();
+if(av.length>0){let ch=av.find(x=>x.name===NMN)||av[Math.floor(Math.random()*av.length)];AMN=ch.name;AMM=Math.floor(Math.random()*ch.r)+ch.m;MASR=30;}
+}
+function spin(){
+if(GB<3)return;GB-=3;
+let ps=['🍪 +1k','🍪 +50k','⚡ x10 Click','🌟 +1M'],sc=document.getElementById('sr'),btn=document.getElementById('sbtn');
+btn.disabled=true;let cnt=0;
+let iv=setInterval(()=>{sc.innerText=ps[Math.floor(Math.random()*ps.length)];if(cnt++>8){clearInterval(iv);sc.innerText='Reward Claimed!';D+=10000;SV.s();ui();btn.disabled=false;}},100);
+}
+function timeJump(sec,gcCost){
+if(GB<gcCost){document.getElementById('trres').innerText="Not enough Golden Cookies!";return;}
+GB-=gcCost;let earned=getCpS()*sec;D+=earned;
+document.getElementById('trres').innerText=`Jumped! Gained ${fmt(earned)} cookies!`;
+SV.s();ui();
+}
+document.getElementById('cb').onclick=()=>{
+if(CM<5)CM++;
+let mb=MASR>0?AMM:1;D+=CP*CM*mb;
+if(GRU&&++CGR>=GFR){CGR=0;dropRain();}
+clearTimeout(CT);CT=setTimeout(()=>{CM=1;ui();},1000);ui();
+};
+function getCpS(){return Bs.reduce((a,b)=>a+(b.owned*(b.baseCps*b.mult)),0);}
+const SV={
+s:()=>{localStorage.setItem('cc2_save',JSON.stringify({D,GB,CP,PCL,PCC,NMN,GRU,bs:Bs.map(b=>({owned:b.owned,cost:b.cost,mult:b.mult})),us:US.map(u=>({B:u.B}))}));},
+l:()=>{
+let raw=localStorage.getItem('cc2_save');if(!raw)return;
+try{let sd=JSON.parse(raw);
+D=sd.D||0;GB=sd.GB||0;CP=sd.CP||1;PCL=sd.PCL||0;PCC=sd.PCC||5000;NMN=sd.NMN||'';
+GRU=sd.GRU||false;if(GRU)document.getElementById('rs-bar').style.display='block';
+if(sd.bs)sd.bs.forEach((b,i)=>{if(Bs[i]){Bs[i].owned=b.owned;Bs[i].cost=b.cost;Bs[i].mult=b.mult;}});
+if(sd.us)sd.us.forEach((u,i)=>{if(US[i])US[i].B=u.B;});
+if(!NMN)rollNextMilk();}catch(e){}
+}
+};
+function wipe(){if(confirm('Wipe save?')){localStorage.removeItem('cc2_save');location.reload();}}
+function ui(){
+document.getElementById('cc').innerText=`${fmt(D)} Cookies`;
+document.getElementById('cp').innerText=`${fmt(getCpS())} CpS`;
+document.getElementById('gbc').innerText=`Golden Cookies: ${GB} 🌟`;
+document.getElementById('cpc').innerText=`Click Power: +${fmt(CP)}`;
+document.getElementById('j1min').disabled=GB<5;
+document.getElementById('j1hr').disabled=GB<50;
+document.getElementById('j1day').disabled=GB<200;
+
+if(US.slice(9,14).some(u=>u.B)){
+document.getElementById('ms-bar').style.display='block';
+if(MASR>0){
+document.getElementById('mst').innerText=`🥛 ${AMN} (x${AMM}) [${MASR}s]`;
+document.getElementById('mfi').style.width=`${(MASR/30)*100}%`;
+document.getElementById('mfi').style.background='linear-gradient(90deg,#10b981,#34d399)';
+}else{
+if(!NMN)rollNextMilk();
+document.getElementById('mst').innerText=`🥛 Next: ${NMN} (${MET}s)`;
+document.getElementById('mfi').style.width=`${((300-MET)/300)*100}%`;
+document.getElementById('mfi').style.background='linear-gradient(90deg,#0ea5e9,#7dd3fc)';
+}
+}
+
+if(GRU){
+document.getElementById('rst').innerText=`🌟 Rain: ${CGR} / ${GFR}`;
+document.getElementById('rfi').style.width=`${(CGR/GFR)*100}%`;
+}
+Bs.forEach((b,i)=>{let btn=document.getElementById(`buy-${i}`),own=document.getElementById(`own-${i}`);if(btn){own.innerText=b.owned;btn.disabled=D<b.cost;}});
+US.forEach((u,i)=>{let btn=document.getElementById(`ubtn-${i}`);if(btn){btn.disabled=(u.B&&u.id!='powerclick')||D<u.cost;btn.innerText=u.B&&u.id!='powerclick'?'Owned':'Buy';}});
+}
+setInterval(()=>{
+D+=(getCpS()/10);
+if(++TT>=10){TT=0;if(MASR>0){MASR--;if(MASR===0){MET=300;rollNextMilk();}}else if(US.slice(9,14).some(u=>u.B)){MET--;if(MET<=0)triggerMilk();}}
+ui();
+},100);
+setInterval(()=>SV.s(),30000);
+SV.l();render();ui();
+</script>
+</body>
+</html>
+
